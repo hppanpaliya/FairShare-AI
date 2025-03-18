@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { updateItemClaims } from "../services/api";
+import ConfirmationModal from "./ConfirmationModal";
+import { useToast } from "./ToastProvider";
 
 const ItemClaims = ({ items, people, loading, onError }) => {
   // State for quantity editing
@@ -7,6 +9,15 @@ const ItemClaims = ({ items, people, loading, onError }) => {
 
   // State for tracking which people are selected for splitting
   const [selectedPeople, setSelectedPeople] = useState({});
+  // State for confirmation modal
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    itemId: null,
+    title: "",
+    message: "",
+    action: null,
+  });
+  const { addToast } = useToast();
 
   // Generate unique key for tracking field edits
   const getQuantityKey = (itemId, personId) => `${itemId}-${personId}`;
@@ -64,10 +75,20 @@ const ItemClaims = ({ items, people, loading, onError }) => {
     }
   };
 
-  // Clear all claims for an item
-  const clearAllClaims = async (itemId) => {
-    if (!window.confirm("Clear all claims for this item?")) return;
+  // Request to clear all claims for an item
+  const handleClearAllClaims = (itemId) => {
+    const item = items.find((i) => i._id === itemId);
+    setConfirmModal({
+      show: true,
+      itemId,
+      title: "Clear All Claims",
+      message: `Are you sure you want to clear all claims for ${item?.name}?`,
+      action: () => performClearAllClaims(itemId),
+    });
+  };
 
+  // Actually clear all claims after confirmation
+  const performClearAllClaims = async (itemId) => {
     try {
       for (const person of people) {
         await updateItemClaims(itemId, person._id, 0);
@@ -80,6 +101,9 @@ const ItemClaims = ({ items, people, loading, onError }) => {
         delete newSelectedPeople[key];
       });
       setSelectedPeople(newSelectedPeople);
+      // Show success toast
+      const item = items.find((i) => i._id === itemId);
+      addToast(`All claims cleared for ${item?.name || "item"}`, "success");
     } catch (err) {
       console.error("Error clearing claims:", err);
       onError && onError("Failed to clear claims. Please try again.");
@@ -137,7 +161,7 @@ const ItemClaims = ({ items, people, loading, onError }) => {
 
     // If no one is selected, show a message
     if (peopleToSplit.length === 0) {
-      window.alert("Please select at least one person by checking the boxes next to their names.");
+      addToast("Please select at least one person by checking the boxes next to their names.", "error");
       return;
     }
 
@@ -151,6 +175,7 @@ const ItemClaims = ({ items, people, loading, onError }) => {
         // Update with share if selected, or 0 if not selected
         await updateItemClaims(itemId, person._id, isSelected ? sharePerPerson : 0);
       }
+      addToast(`${item.name} split evenly among ${peopleToSplit.length} ${peopleToSplit.length === 1 ? "person" : "people"}`, "success");
     } catch (err) {
       console.error("Error splitting evenly:", err);
       onError && onError("Failed to split evenly. Please try again.");
@@ -215,14 +240,13 @@ const ItemClaims = ({ items, people, loading, onError }) => {
                         Select All
                       </button>
                       <button
-                        onClick={() => clearAllClaims(item._id)}
+                        onClick={() => handleClearAllClaims(item._id)}
                         className="text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100"
                         title="Clear all claims"
                       >
                         Clear All
                       </button>
                     </div>
-
                     <button
                       onClick={() => splitEvenly(item._id)}
                       disabled={countSelectedPeople(item._id) === 0}
@@ -235,7 +259,6 @@ const ItemClaims = ({ items, people, loading, onError }) => {
                   </div>
                 </div>
               </div>
-
               <div className="border-l border-r border-b rounded-b-md overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
@@ -256,11 +279,9 @@ const ItemClaims = ({ items, people, loading, onError }) => {
                       const claimedQty = getPersonClaimedQuantity(item, personId);
                       const cost = claimedQty * item.unitPrice;
                       const isSelected = isPersonSelected(itemId, personId);
-
                       // Check if this field is currently being edited
                       const isEditing = quantityKey in editingQuantities;
                       const inputValue = isEditing ? editingQuantities[quantityKey] : claimedQty > 0 ? formatQuantity(claimedQty) : "";
-
                       return (
                         <tr key={personId} className={personIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                           <td className="p-2 text-center">
@@ -309,6 +330,17 @@ const ItemClaims = ({ items, people, loading, onError }) => {
           {items.length === 0 ? "Add some items to the bill first." : people.length === 0 ? "Add people to claim items." : ""}
         </p>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ ...confirmModal, show: false })}
+        onConfirm={confirmModal.action}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmButtonText="Confirm"
+        confirmButtonColor="blue"
+      />
     </div>
   );
 };

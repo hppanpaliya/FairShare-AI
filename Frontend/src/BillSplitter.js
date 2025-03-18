@@ -8,12 +8,14 @@ import PeopleList from "./components/PeopleList";
 import ItemsList from "./components/ItemsList";
 import ItemClaims from "./components/ItemClaims";
 import BillImage from "./components/BillImage";
+import { useToast } from "./components/ToastProvider";
 
 const BillSplitter = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const { addToast } = useToast();
 
   // Get event data from custom hook
   const {
@@ -44,7 +46,7 @@ const BillSplitter = () => {
       const timer = setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
@@ -132,6 +134,12 @@ const BillSplitter = () => {
     return `${window.location.origin}/event/${eventId}`;
   };
 
+  // Handle copying the link
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(getShareableLink());
+    addToast("Link copied to clipboard!", "info");
+  };
+
   // Handle errors from child components
   const handleError = (errorMessage) => {
     setError(errorMessage);
@@ -140,7 +148,7 @@ const BillSplitter = () => {
 
   // Handle successful bill parsing
   const handleParsingSuccess = (itemCount) => {
-    setSuccessMessage(`Successfully extracted ${itemCount} item${itemCount !== 1 ? 's' : ''} from the bill!`);
+    setSuccessMessage(`Successfully extracted ${itemCount} item${itemCount !== 1 ? "s" : ""} from the bill!`);
     setError(null); // Clear any error message
   };
 
@@ -179,36 +187,30 @@ const BillSplitter = () => {
               <p className="font-semibold">Shareable Link:</p>
               <div className="flex mt-1">
                 <input type="text" value={getShareableLink()} readOnly className="flex-grow p-2 border rounded-l bg-gray-50" />
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(getShareableLink());
-                    window.alert("Link copied to clipboard!");
-                  }}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
-                >
+                <button onClick={handleCopyLink} className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600">
                   Copy
                 </button>
               </div>
             </div>
           </div>
-          
+
           {/* Notification area */}
           {(error || successMessage) && (
-            <div className={`p-4 rounded-md ${error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+            <div className={`p-4 rounded-md ${error ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
               <p>{error || successMessage}</p>
             </div>
           )}
-          
+
           {/* Bill Image Component */}
-          <BillImage 
-            eventId={eventId} 
-            eventName={eventName} 
-            billImage={billImage} 
-            loading={loading} 
+          <BillImage
+            eventId={eventId}
+            eventName={eventName}
+            billImage={billImage}
+            loading={loading}
             onError={handleError}
             onParsingSuccess={handleParsingSuccess}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column: Items and Bill Details */}
             <div className="space-y-6">

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { addItem, deleteItem, updateItem } from "../services/api";
 import EditItemModal from "./EditItemModal";
+import ConfirmationModal from "./ConfirmationModal";
+import { useToast } from "./ToastProvider";
 
 const ItemsList = ({ eventId, items, loading, onError }) => {
   const [newItem, setNewItem] = useState({
@@ -13,6 +15,14 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    itemId: null,
+    title: "",
+    message: "",
+    action: null,
+  });
+  const { addToast } = useToast();
 
   // Handle unit price and total price calculations
   const handleItemChange = (field, value) => {
@@ -64,8 +74,8 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
     } else if (unitPrice && !totalPrice) {
       totalPrice = unitPrice * quantity;
     } else if (!unitPrice && !totalPrice) {
-      // Both missing, can't proceed
-      alert("Please enter either unit price or total price");
+      // Replace alert with toast
+      addToast("Please enter either unit price or total price", "error");
       return;
     }
 
@@ -88,14 +98,24 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
     }
   };
 
-  // Delete an item
-  const handleDeleteItem = async (itemId) => {
-    if (!window.confirm("Are you sure you want to delete this item?")) return;
+  // Delete an item - now opens confirmation modal
+  const handleDeleteItem = (itemId) => {
+    setConfirmModal({
+      show: true,
+      itemId,
+      title: "Delete Item",
+      message: "Are you sure you want to delete this item?",
+      action: () => performDeleteItem(itemId),
+    });
+  };
 
+  // Perform the actual deletion after confirmation
+  const performDeleteItem = async (itemId) => {
     setIsSubmitting(true);
     try {
       await deleteItem(itemId);
       // The socket update will refresh the list
+      addToast("Item successfully deleted", "success");
     } catch (err) {
       console.error("Error deleting item:", err);
       onError && onError("Failed to delete item. Please try again.");
@@ -107,17 +127,26 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
   // Toggle item selection for multi-delete
   const toggleSelectItem = (itemId) => {
     if (selectedItems.includes(itemId)) {
-      setSelectedItems(selectedItems.filter(id => id !== itemId));
+      setSelectedItems(selectedItems.filter((id) => id !== itemId));
     } else {
       setSelectedItems([...selectedItems, itemId]);
     }
   };
 
-  // Delete multiple selected items
-  const handleDeleteSelected = async () => {
+  // Delete multiple selected items - now opens confirmation modal
+  const handleDeleteSelected = () => {
     if (selectedItems.length === 0) return;
-    if (!window.confirm(`Are you sure you want to delete ${selectedItems.length} selected items?`)) return;
-    
+
+    setConfirmModal({
+      show: true,
+      title: "Delete Selected Items",
+      message: `Are you sure you want to delete ${selectedItems.length} selected items?`,
+      action: performDeleteSelected,
+    });
+  };
+
+  // Perform the actual deletion of selected items after confirmation
+  const performDeleteSelected = async () => {
     setIsSubmitting(true);
     try {
       // Delete items one by one
@@ -126,6 +155,7 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
       }
       // Clear selection after successful deletion
       setSelectedItems([]);
+      addToast(`${selectedItems.length} items successfully deleted`, "success");
     } catch (err) {
       console.error("Error deleting selected items:", err);
       onError && onError("Failed to delete some items. Please try again.");
@@ -141,7 +171,7 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
       name: item.name,
       quantity: item.quantity.toString(),
       unitPrice: item.unitPrice.toFixed(2),
-      totalPrice: item.totalPrice.toFixed(2)
+      totalPrice: item.totalPrice.toFixed(2),
     });
     setShowEditModal(true);
   };
@@ -149,7 +179,7 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
   // Handle changes in the edit modal
   const handleEditChange = (field, value) => {
     const updatedItem = { ...editingItem, [field]: value };
-    
+
     if (field === "quantity") {
       if (updatedItem.unitPrice) {
         const qty = parseFloat(value) || 0;
@@ -177,30 +207,30 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
         }
       }
     }
-    
+
     setEditingItem(updatedItem);
   };
 
   // Save edited item
   const handleSaveEdit = async () => {
     if (!editingItem.name.trim()) return;
-    
+
     // Default quantity to 1 if not provided
     const quantity = parseFloat(editingItem.quantity) || 1;
     let unitPrice = parseFloat(editingItem.unitPrice) || 0;
     let totalPrice = parseFloat(editingItem.totalPrice) || 0;
-    
+
     // Ensure we have both unit and total price
     if (!unitPrice && totalPrice) {
       unitPrice = totalPrice / quantity;
     } else if (unitPrice && !totalPrice) {
       totalPrice = unitPrice * quantity;
     } else if (!unitPrice && !totalPrice) {
-      // Both missing, can't proceed
-      alert("Please enter either unit price or total price");
+      // Replace alert with toast
+      addToast("Please enter either unit price or total price", "error");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       await updateItem(editingItem._id, {
@@ -209,10 +239,11 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
         unitPrice,
         totalPrice,
       });
-      
+
       // Close modal after successful update
       setShowEditModal(false);
       setEditingItem(null);
+      addToast("Item successfully updated", "success");
     } catch (err) {
       console.error("Error updating item:", err);
       onError && onError("Failed to update item. Please try again.");
@@ -279,11 +310,11 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
           </button>
         </div>
       </div>
-      
+
       <div className="mt-4 space-y-2">
         {selectedItems.length > 0 && (
           <div className="mb-2">
-            <button 
+            <button
               onClick={handleDeleteSelected}
               disabled={isSubmitting}
               className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
@@ -301,35 +332,31 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
           <span className="w-1/6 text-right">Total</span>
           <span className="w-1/6 text-right">Actions</span>
         </div>
-        
+
         {items.length === 0 ? (
           <p className="text-gray-500 py-2">No items added yet.</p>
         ) : (
           items.map((item) => (
-            <div 
-              key={item._id} 
-              className={`flex justify-between items-center border-b pb-2 text-sm ${selectedItems.includes(item._id) ? 'bg-blue-50' : ''}`}
+            <div
+              key={item._id}
+              className={`flex justify-between items-center border-b pb-2 text-sm ${selectedItems.includes(item._id) ? "bg-blue-50" : ""}`}
             >
               <span className="w-8">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.includes(item._id)}
-                  onChange={() => toggleSelectItem(item._id)}
-                  className="h-4 w-4"
-                />
+                <input type="checkbox" checked={selectedItems.includes(item._id)} onChange={() => toggleSelectItem(item._id)} className="h-4 w-4" />
               </span>
-              <span 
-                className="flex-1 truncate cursor-pointer hover:text-blue-600"
-                onClick={() => openEditModal(item)}
-              >
+              <span className="flex-1 truncate cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
                 {item.name}
               </span>
               <span className="w-1/6 text-center cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
                 {item.quantity}
                 <span className="text-xs text-gray-500 ml-1">({getTotalClaimedQuantity(item).toFixed(2)} claimed)</span>
               </span>
-              <span className="w-1/6 text-right cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>${item.unitPrice.toFixed(2)}</span>
-              <span className="w-1/6 text-right cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>${item.totalPrice.toFixed(2)}</span>
+              <span className="w-1/6 text-right cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
+                ${item.unitPrice.toFixed(2)}
+              </span>
+              <span className="w-1/6 text-right cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
+                ${item.totalPrice.toFixed(2)}
+              </span>
               <span className="w-1/6 text-right flex justify-end gap-2">
                 <button onClick={() => handleDeleteItem(item._id)} className="text-red-500 hover:text-red-700 mr-2" title="Delete item">
                   Delete
@@ -351,6 +378,17 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
           isSubmitting={isSubmitting}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ ...confirmModal, show: false })}
+        onConfirm={confirmModal.action}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmButtonText="Delete"
+        confirmButtonColor="red"
+      />
     </div>
   );
 };

@@ -1,13 +1,6 @@
 import React from "react";
 
-const EditItemModal = ({ 
-  isOpen, 
-  onClose, 
-  item, 
-  onItemChange, 
-  onSave, 
-  isSubmitting 
-}) => {
+const EditItemModal = ({ isOpen, onClose, item, onItemChange, onSave, isSubmitting }) => {
   if (!isOpen) return null;
 
   return (
@@ -58,17 +51,10 @@ const EditItemModal = ({
           </div>
         </div>
         <div className="p-4 border-t flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
-          >
+          <button onClick={onClose} className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">
             Cancel
           </button>
-          <button
-            onClick={onSave}
-            disabled={isSubmitting}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
+          <button onClick={onSave} disabled={isSubmitting} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
             {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>

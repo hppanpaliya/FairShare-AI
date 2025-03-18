@@ -1,21 +1,28 @@
 import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
 import { uploadBillImage, getBillImageUrl, deleteBillImage, parseBillImage } from "../services/api";
+import ConfirmationModal from "./ConfirmationModal";
+import { useToast } from "./ToastProvider";
 
 const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    show: false,
+    title: "",
+    message: "",
+    action: null,
+  });
+  const { addToast } = useToast();
 
   // Handle file selection and upload
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setIsUploading(true);
     setUploadProgress(0);
-
     try {
       // Compress image before uploading
       setUploadProgress(10);
@@ -27,15 +34,14 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
       };
       const compressedFile = await imageCompression(file, options);
       setUploadProgress(90);
-
       // Upload compressed image
       await uploadBillImage(eventId, compressedFile);
       setUploadProgress(100);
-
       // Wait a moment to show complete progress
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
+        addToast("Bill image uploaded successfully", "success");
       }, 500);
     } catch (err) {
       console.error("Error uploading bill image:", err);
@@ -48,12 +54,11 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
   // Handle parsing the bill with OpenAI
   const handleParseBill = async () => {
     if (!billImage) return;
-
     setIsParsing(true);
     try {
       const result = await parseBillImage(eventId);
       setIsParsing(false);
-      
+
       if (result.itemsExtracted > 0) {
         onParsingSuccess && onParsingSuccess(result.itemsExtracted);
       } else {
@@ -71,15 +76,24 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
     setShowPreview(true);
   };
 
-  // Handle deleting the bill image
-  const handleDeleteBill = async () => {
-    if (!window.confirm("Are you sure you want to delete this bill image?")) return;
+  // Handle deleting the bill image - show confirmation modal
+  const handleDeleteBill = () => {
+    setConfirmModal({
+      show: true,
+      title: "Delete Bill Image",
+      message: "Are you sure you want to delete this bill image?",
+      action: performDeleteBill,
+    });
+  };
 
+  // Perform the actual deletion after confirmation
+  const performDeleteBill = async () => {
     setIsUploading(true);
     try {
       await deleteBillImage(eventId);
       setShowPreview(false);
       setIsUploading(false);
+      addToast("Bill image deleted successfully", "success");
     } catch (err) {
       console.error("Error deleting bill image:", err);
       onError && onError("Failed to delete bill image. Please try again.");
@@ -105,24 +119,22 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
               <button onClick={handleViewBill} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                 View Bill
               </button>
-              <button 
-                onClick={handleParseBill} 
-                className={`px-4 py-2 ${isParsing ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'} text-white rounded`}
+              <button
+                onClick={handleParseBill}
+                className={`px-4 py-2 ${isParsing ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"} text-white rounded`}
                 disabled={isParsing || loading}
               >
-                {isParsing ? 'Parsing...' : 'Parse with AI'}
+                {isParsing ? "Parsing..." : "Parse with AI"}
               </button>
             </div>
             <button onClick={handleDeleteBill} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
               Delete
             </button>
           </div>
-          
+
           {isParsing && (
             <div className="mt-2 mb-4">
-              <p className="text-sm text-gray-600">
-                Processing bill with AI... This may take a few seconds.
-              </p>
+              <p className="text-sm text-gray-600">Processing bill with AI... This may take a few seconds.</p>
             </div>
           )}
 
@@ -162,6 +174,16 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
           </label>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.show}
+        onClose={() => setConfirmModal({ ...confirmModal, show: false })}
+        onConfirm={confirmModal.action}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmButtonText="Delete"
+        confirmButtonColor="red"
+      />
     </div>
   );
 };
