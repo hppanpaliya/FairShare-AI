@@ -211,7 +211,7 @@ const BillSplitter = () => {
             onParsingSuccess={handleParsingSuccess}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column: Items and Bill Details */}
             <div className="space-y-6">
               <ItemsList eventId={eventId} items={items} loading={loading} onError={handleError} />
