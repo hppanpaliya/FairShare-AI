@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
-import { uploadBillImage, getBillImageUrl, deleteBillImage } from "../services/api";
+import { uploadBillImage, getBillImageUrl, deleteBillImage, parseBillImage } from "../services/api";
 
-const BillImage = ({ eventId, eventName, billImage, loading, onError }) => {
+const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -24,7 +25,6 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError }) => {
         useWebWorker: true,
         onProgress: (p) => setUploadProgress(10 + Math.round(p * 80)),
       };
-
       const compressedFile = await imageCompression(file, options);
       setUploadProgress(90);
 
@@ -42,6 +42,27 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError }) => {
       onError && onError("Failed to upload bill image. Please try again.");
       setIsUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  // Handle parsing the bill with OpenAI
+  const handleParseBill = async () => {
+    if (!billImage) return;
+
+    setIsParsing(true);
+    try {
+      const result = await parseBillImage(eventId);
+      setIsParsing(false);
+      
+      if (result.itemsExtracted > 0) {
+        onParsingSuccess && onParsingSuccess(result.itemsExtracted);
+      } else {
+        onError && onError("No items were detected in the bill. Please try with a clearer image or add items manually.");
+      }
+    } catch (err) {
+      console.error("Error parsing bill:", err);
+      onError && onError("Failed to parse bill. Please try again or add items manually.");
+      setIsParsing(false);
     }
   };
 
@@ -80,13 +101,30 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError }) => {
       ) : billImage ? (
         <div>
           <div className="flex justify-between mb-4">
-            <button onClick={handleViewBill} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-              View Bill
-            </button>
+            <div className="flex space-x-2">
+              <button onClick={handleViewBill} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                View Bill
+              </button>
+              <button 
+                onClick={handleParseBill} 
+                className={`px-4 py-2 ${isParsing ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'} text-white rounded`}
+                disabled={isParsing || loading}
+              >
+                {isParsing ? 'Parsing...' : 'Parse with AI'}
+              </button>
+            </div>
             <button onClick={handleDeleteBill} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
               Delete
             </button>
           </div>
+          
+          {isParsing && (
+            <div className="mt-2 mb-4">
+              <p className="text-sm text-gray-600">
+                Processing bill with AI... This may take a few seconds.
+              </p>
+            </div>
+          )}
 
           {/* Image preview modal */}
           {showPreview && (

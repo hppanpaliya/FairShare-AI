@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useSocketConnection from "./hooks/useSocketConnection";
 import useEventData from "./hooks/useEventData";
@@ -13,6 +13,7 @@ const BillSplitter = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Get event data from custom hook
   const {
@@ -36,6 +37,17 @@ const BillSplitter = () => {
 
   // Connect to socket
   const { connected } = useSocketConnection(eventId, handleEventUpdate);
+
+  // Clear success message after timeout
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   // Calculate total bill
   const calculateTotalBill = useCallback(() => {
@@ -123,6 +135,13 @@ const BillSplitter = () => {
   // Handle errors from child components
   const handleError = (errorMessage) => {
     setError(errorMessage);
+    setSuccessMessage(null); // Clear any success message
+  };
+
+  // Handle successful bill parsing
+  const handleParsingSuccess = (itemCount) => {
+    setSuccessMessage(`Successfully extracted ${itemCount} item${itemCount !== 1 ? 's' : ''} from the bill!`);
+    setError(null); // Clear any error message
   };
 
   if (loading && !eventData && !eventId) {
@@ -172,15 +191,28 @@ const BillSplitter = () => {
               </div>
             </div>
           </div>
-
+          
+          {/* Notification area */}
+          {(error || successMessage) && (
+            <div className={`p-4 rounded-md ${error ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              <p>{error || successMessage}</p>
+            </div>
+          )}
+          
           {/* Bill Image Component */}
-          <BillImage eventId={eventId} eventName={eventName} billImage={billImage} loading={loading} onError={handleError} />
-
+          <BillImage 
+            eventId={eventId} 
+            eventName={eventName} 
+            billImage={billImage} 
+            loading={loading} 
+            onError={handleError}
+            onParsingSuccess={handleParsingSuccess}
+          />
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column: Items and Bill Details */}
             <div className="space-y-6">
               <ItemsList eventId={eventId} items={items} loading={loading} onError={handleError} />
-
               <TaxAndTip
                 tax={tax}
                 tip={tip}
@@ -195,11 +227,9 @@ const BillSplitter = () => {
                 loading={loading}
               />
             </div>
-
             {/* Right Column: People and Claims */}
             <div className="space-y-6">
               <PeopleList eventId={eventId} people={people} shares={shares} loading={loading} onError={handleError} />
-
               {items.length > 0 && people.length > 0 && <ItemClaims items={items} people={people} loading={loading} onError={handleError} />}
             </div>
           </div>

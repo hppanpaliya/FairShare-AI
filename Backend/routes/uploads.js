@@ -4,7 +4,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Event = require("../models/Event");
+const Item = require("../models/Item");
 const { broadcastEventUpdate } = require("../config/socket");
+const { parseBillImage } = require("../utils/openaiParser");
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, "..", "uploads");
@@ -95,6 +97,62 @@ router.post("/:eventId/bill", upload.single("billImage"), async (req, res) => {
   } catch (error) {
     console.error("Error uploading bill image:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Parse bill image and add items
+router.post("/:eventId/parse-bill", async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    
+    // Find the event
+    const event = await Event.findOne({ eventId });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    
+    // Check if bill image exists
+    if (!event.billImage) {
+      return res.status(400).json({ message: "No bill image found for this event" });
+    }
+    
+    // Get the full path of the image
+    const imagePath = path.join(uploadsDir, event.billImage);
+    if (!fs.existsSync(imagePath)) {
+      return res.status(404).json({ message: "Bill image file not found" });
+    }
+    
+    // Parse the bill image with OpenAI
+    const extractedItems = await parseBillImage(imagePath);
+    
+    // Create items in the database
+    const createdItems = [];
+    for (const item of extractedItems) {
+      const newItem = new Item({
+        eventId,
+        name: item.name,
+        quantity: item.quantity || 1,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice || (item.unitPrice * (item.quantity || 1)),
+        claims: []
+      });
+      
+      await newItem.save();
+      createdItems.push(newItem);
+    }
+    
+    // Broadcast update to all connected clients
+    const io = req.app.get("io");
+    await broadcastEventUpdate(io, eventId);
+    
+    res.json({ 
+      message: "Bill parsed successfully",
+      itemsExtracted: createdItems.length,
+      items: createdItems
+    });
+  } catch (error) {
+    console.error("Error parsing bill:", error);
+    res.status(500).json({ message: "Error parsing bill", error: error.message });
   }
 });
 

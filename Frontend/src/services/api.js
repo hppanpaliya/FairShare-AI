@@ -70,6 +70,12 @@ export const uploadBillImage = async (eventId, file) => {
   return response.data;
 };
 
+// Parse bill image with OpenAI
+export const parseBillImage = async (eventId) => {
+  const response = await axios.post(`${API_BASE_URL}/uploads/${eventId}/parse-bill`);
+  return response.data;
+};
+
 // Get bill image URL
 export const getBillImageUrl = (eventId) => {
   return `${API_BASE_URL}/uploads/${eventId}/bill`;
