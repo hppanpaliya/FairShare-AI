@@ -92,16 +92,16 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
       <h2 className="text-xl font-bold mb-4">Bill Image</h2>
 
       {isUploading ? (
-        <div className="mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+        <div className="mb-4 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+            <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style={{ width: `${Math.min(uploadProgress, 100)}%` }}></div>
           </div>
           <p className="text-sm text-gray-500 mt-1">{uploadProgress < 100 ? "Uploading..." : "Processing..."}</p>
         </div>
       ) : billImage ? (
         <div>
-          <div className="flex justify-between mb-4">
-            <div className="flex space-x-2">
+          <div className="flex flex-wrap justify-between gap-2 mb-4">
+            <div className="flex flex-wrap gap-2">
               <button onClick={handleViewBill} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                 View Bill
               </button>
