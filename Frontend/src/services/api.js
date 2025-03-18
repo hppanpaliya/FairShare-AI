@@ -42,6 +42,12 @@ export const addItem = async (eventId, item) => {
   return response.data;
 };
 
+// Update existing item
+export const updateItem = async (itemId, itemData) => {
+  const response = await axios.put(`${API_BASE_URL}/items/${itemId}`, itemData);
+  return response.data;
+};
+
 // Delete item from event
 export const deleteItem = async (itemId) => {
   const response = await axios.delete(`${API_BASE_URL}/items/${itemId}`);

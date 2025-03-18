@@ -29,6 +29,36 @@ router.delete("/:itemId", async (req, res) => {
   }
 });
 
+// Update an item
+router.put("/:itemId", async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { name, quantity, unitPrice, totalPrice } = req.body;
+    
+    const item = await Item.findById(itemId);
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+    
+    // Update item fields
+    item.name = name;
+    item.quantity = quantity;
+    item.unitPrice = unitPrice;
+    item.totalPrice = totalPrice;
+    
+    await item.save();
+    
+    // Broadcast update to all connected clients
+    const io = req.app.get("io");
+    await broadcastEventUpdate(io, item.eventId);
+    
+    res.json(item);
+  } catch (error) {
+    console.error("Error updating item:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Update item claims
 router.put("/:itemId/claims", async (req, res) => {
   try {
