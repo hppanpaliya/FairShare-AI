@@ -1,12 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
+const path = require("path");
 require("dotenv").config();
 
 // Import routes
 const eventRoutes = require("./routes/events");
 const itemRoutes = require("./routes/items");
 const peopleRoutes = require("./routes/people");
+const uploadsRoutes = require("./routes/uploads");
 
 // Import database connection
 const connectDB = require("./config/db");
@@ -38,6 +40,10 @@ app.use(express.json());
 app.use("/api/events", eventRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/people", peopleRoutes);
+app.use("/api/uploads", uploadsRoutes);
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve static assets in production
 app.use(express.static("build"));

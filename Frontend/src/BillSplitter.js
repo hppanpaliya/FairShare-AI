@@ -7,6 +7,7 @@ import TaxAndTip from "./components/TaxAndTip";
 import PeopleList from "./components/PeopleList";
 import ItemsList from "./components/ItemsList";
 import ItemClaims from "./components/ItemClaims";
+import BillImage from "./components/BillImage";
 
 const BillSplitter = () => {
   const { eventId } = useParams();
@@ -25,6 +26,7 @@ const BillSplitter = () => {
     tip,
     taxSplitEqually,
     tipSplitEqually,
+    billImage,
     setTax,
     setTip,
     setTaxSplitEqually,
@@ -170,6 +172,9 @@ const BillSplitter = () => {
               </div>
             </div>
           </div>
+
+          {/* Bill Image Component */}
+          <BillImage eventId={eventId} eventName={eventName} billImage={billImage} loading={loading} onError={handleError} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column: Items and Bill Details */}

@@ -56,3 +56,27 @@ export const updateItemClaims = async (itemId, personId, quantity) => {
   });
   return response.data;
 };
+
+// Upload bill image
+export const uploadBillImage = async (eventId, file) => {
+  const formData = new FormData();
+  formData.append("billImage", file);
+
+  const response = await axios.post(`${API_BASE_URL}/uploads/${eventId}/bill`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+// Get bill image URL
+export const getBillImageUrl = (eventId) => {
+  return `${API_BASE_URL}/uploads/${eventId}/bill`;
+};
+
+// Delete bill image
+export const deleteBillImage = async (eventId) => {
+  const response = await axios.delete(`${API_BASE_URL}/uploads/${eventId}/bill`);
+  return response.data;
+};
