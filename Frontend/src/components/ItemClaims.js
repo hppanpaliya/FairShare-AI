@@ -150,6 +150,10 @@ const ItemClaims = ({ items, people, loading, onError }) => {
     return people.filter((person) => isPersonSelected(itemId, person._id)).length;
   };
 
+  const areAllPeopleSelected = (itemId) => {
+    return people.every((person) => isPersonSelected(itemId, person._id));
+  };
+
   // Split an item evenly among selected people
   const splitEvenly = async (itemId) => {
     // Get the item details
@@ -232,13 +236,23 @@ const ItemClaims = ({ items, people, loading, onError }) => {
 
                   <div className="flex items-center gap-2">
                     <div className="flex border rounded overflow-hidden">
-                      <button
-                        onClick={() => selectAllPeople(item._id)}
-                        className="text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 border-r"
-                        title="Select all people"
-                      >
-                        Select All
-                      </button>
+                      {areAllPeopleSelected(item._id) ? (
+                        <button
+                          onClick={() => deselectAllPeople(item._id)}
+                          className="text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 border-r"
+                          title="Deselect all people"
+                        >
+                          Deselect All
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => selectAllPeople(item._id)}
+                          className="text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 border-r"
+                          title="Select all people"
+                        >
+                          Select All
+                        </button>
+                      )}
                       <button
                         onClick={() => handleClearAllClaims(item._id)}
                         className="text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100"
