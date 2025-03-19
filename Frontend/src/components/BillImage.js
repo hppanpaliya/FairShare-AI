@@ -101,6 +101,13 @@ const BillImage = ({ eventId, eventName, billImage, billParsed, loading, onError
     }
   };
 
+  // Handle clicking outside the modal to close it
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setShowPreview(false);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">Bill Image</h2>
@@ -149,7 +156,7 @@ const BillImage = ({ eventId, eventName, billImage, billParsed, loading, onError
 
           {/* Image preview modal */}
           {showPreview && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50" onClick={handleOverlayClick}>
               <div className="bg-white rounded-lg max-w-3xl w-full max-h-full overflow-auto">
                 <div className="p-4 border-b flex justify-between items-center">
                   <h3 className="text-lg font-semibold">{eventName} - Bill</h3>

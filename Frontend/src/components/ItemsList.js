@@ -328,7 +328,7 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
                   setSelectedItems([]);
                 } else {
                   // Otherwise, select all items
-                  setSelectedItems(items.map(item => item._id));
+                  setSelectedItems(items.map((item) => item._id));
                 }
               }}
               className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
