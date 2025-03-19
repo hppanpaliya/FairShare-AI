@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { addPerson, deletePerson } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
-import { useToast } from "./ToastProvider";
+import { useToast } from "../context/ToastProvider";
 
 const PeopleList = ({ eventId, people, shares, loading, onError }) => {
   const [newPerson, setNewPerson] = useState("");

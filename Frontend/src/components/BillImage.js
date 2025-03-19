@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
 import { uploadBillImage, getBillImageUrl, deleteBillImage, parseBillImage } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
-import { useToast } from "./ToastProvider";
+import { useToast } from "../context/ToastProvider";
 
 const BillImage = ({ eventId, eventName, billImage, billParsed, loading, onError, onParsingSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);

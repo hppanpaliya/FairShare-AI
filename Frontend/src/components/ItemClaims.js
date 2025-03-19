@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { updateItemClaims } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
-import { useToast } from "./ToastProvider";
+import { useToast } from "../context/ToastProvider";
 
 const ItemClaims = ({ items, people, loading, onError }) => {
   // State for quantity editing

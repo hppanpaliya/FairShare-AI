@@ -8,7 +8,7 @@ import PeopleList from "./components/PeopleList";
 import ItemsList from "./components/ItemsList";
 import ItemClaims from "./components/ItemClaims";
 import BillImage from "./components/BillImage";
-import { useToast } from "./components/ToastProvider";
+import { useToast } from "./context/ToastProvider";
 
 const BillSplitter = () => {
   const { eventId } = useParams();

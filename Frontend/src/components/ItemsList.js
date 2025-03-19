@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { addItem, deleteItem, updateItem } from "../services/api";
 import EditItemModal from "./EditItemModal";
 import ConfirmationModal from "./ConfirmationModal";
-import { useToast } from "./ToastProvider";
+import { useToast } from "../context/ToastProvider";
 
 const ItemsList = ({ eventId, items, loading, onError }) => {
   const [newItem, setNewItem] = useState({

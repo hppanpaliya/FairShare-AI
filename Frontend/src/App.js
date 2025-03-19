@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import BillSplitter from "./BillSplitter";
-import ToastProvider from "./components/ToastProvider";
+import ToastProvider from "./context/ToastProvider";
 import TitleBar from "./components/TitleBar";
 
 function App() {
