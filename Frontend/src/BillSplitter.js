@@ -30,6 +30,7 @@ const BillSplitter = () => {
     taxSplitEqually,
     tipSplitEqually,
     billImage,
+    billParsed,
     setTax,
     setTip,
     setTaxSplitEqually,
@@ -206,6 +207,7 @@ const BillSplitter = () => {
             eventId={eventId}
             eventName={eventName}
             billImage={billImage}
+            billParsed={billParsed}
             loading={loading}
             onError={handleError}
             onParsingSuccess={handleParsingSuccess}

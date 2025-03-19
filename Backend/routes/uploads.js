@@ -84,6 +84,8 @@ router.post("/:eventId/bill", upload.single("billImage"), async (req, res) => {
     // Save relative path to the image
     const relativePath = path.join(eventId, req.file.filename);
     event.billImage = relativePath;
+    // Reset billParsed flag to false when a new image is uploaded
+    event.billParsed = false;
     await event.save();
 
     // Broadcast update to all connected clients
@@ -141,6 +143,12 @@ router.post("/:eventId/parse-bill", async (req, res) => {
       createdItems.push(newItem);
     }
 
+    // Set billParsed flag to true if items were extracted
+    if (createdItems.length > 0) {
+      event.billParsed = true;
+      await event.save();
+    }
+
     // Broadcast update to all connected clients
     const io = req.app.get("io");
     await broadcastEventUpdate(io, eventId);
@@ -149,6 +157,7 @@ router.post("/:eventId/parse-bill", async (req, res) => {
       message: "Bill parsed successfully",
       itemsExtracted: createdItems.length,
       items: createdItems,
+      billParsed: event.billParsed,
     });
   } catch (error) {
     console.error("Error parsing bill:", error);
@@ -175,6 +184,7 @@ router.get("/:eventId/bill", async (req, res) => {
     // Check if file exists
     if (!fs.existsSync(imagePath)) {
       event.billImage = null;
+      event.billParsed = false;
       await event.save();
       return res.status(404).json({ message: "Bill image file not found" });
     }
@@ -207,8 +217,9 @@ router.delete("/:eventId/bill", async (req, res) => {
       fs.unlinkSync(imagePath);
     }
 
-    // Update event record
+    // Update event record - reset both billImage and billParsed flags
     event.billImage = null;
+    event.billParsed = false;
     await event.save();
 
     // Broadcast update to all connected clients

@@ -9,6 +9,7 @@ const EventSchema = new mongoose.Schema({
   taxSplitEqually: { type: Boolean, default: true },
   tipSplitEqually: { type: Boolean, default: true },
   billImage: { type: String, default: null },
+  billParsed: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("Event", EventSchema);

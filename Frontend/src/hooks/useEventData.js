@@ -13,6 +13,7 @@ const useEventData = (eventId) => {
   const [taxSplitEqually, setTaxSplitEqually] = useState(false);
   const [tipSplitEqually, setTipSplitEqually] = useState(false);
   const [billImage, setBillImage] = useState(null);
+  const [billParsed, setBillParsed] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!eventId) return;
@@ -31,6 +32,7 @@ const useEventData = (eventId) => {
       setTaxSplitEqually(event.taxSplitEqually || false);
       setTipSplitEqually(event.tipSplitEqually || false);
       setBillImage(event.billImage);
+      setBillParsed(event.billParsed || false);
       setError(null);
     } catch (err) {
       console.error("Error fetching event data:", err);
@@ -59,6 +61,7 @@ const useEventData = (eventId) => {
     if (event?.taxSplitEqually !== undefined) setTaxSplitEqually(event.taxSplitEqually);
     if (event?.tipSplitEqually !== undefined) setTipSplitEqually(event.tipSplitEqually);
     if (event?.billImage !== undefined) setBillImage(event.billImage);
+    if (event?.billParsed !== undefined) setBillParsed(event.billParsed);
     if (items) setItems(items);
     if (people) setPeople(people);
   }, []);
@@ -107,6 +110,7 @@ const useEventData = (eventId) => {
     taxSplitEqually,
     tipSplitEqually,
     billImage,
+    billParsed,
     setEventName,
     setTax,
     setTip,
@@ -114,6 +118,7 @@ const useEventData = (eventId) => {
     setTipSplitEqually,
     setItems,
     setPeople,
+    setBillParsed,
     fetchData,
     handleEventUpdate,
   };

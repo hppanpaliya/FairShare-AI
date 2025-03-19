@@ -4,7 +4,7 @@ import { uploadBillImage, getBillImageUrl, deleteBillImage, parseBillImage } fro
 import ConfirmationModal from "./ConfirmationModal";
 import { useToast } from "./ToastProvider";
 
-const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingSuccess }) => {
+const BillImage = ({ eventId, eventName, billImage, billParsed, loading, onError, onParsingSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -121,10 +121,13 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
               </button>
               <button
                 onClick={handleParseBill}
-                className={`px-4 py-2 ${isParsing ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"} text-white rounded`}
-                disabled={isParsing || loading}
+                className={`px-4 py-2 ${
+                  isParsing || billParsed ? "bg-gray-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
+                } text-white rounded`}
+                disabled={isParsing || loading || billParsed}
+                title={billParsed ? "This bill has already been parsed" : ""}
               >
-                {isParsing ? "Parsing..." : "Parse with AI"}
+                {isParsing ? "Parsing..." : billParsed ? "Already Parsed" : "Parse with AI"}
               </button>
             </div>
             <button onClick={handleDeleteBill} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
@@ -135,6 +138,12 @@ const BillImage = ({ eventId, eventName, billImage, loading, onError, onParsingS
           {isParsing && (
             <div className="mt-2 mb-4">
               <p className="text-sm text-gray-600">Processing bill with AI... This may take a few seconds.</p>
+            </div>
+          )}
+
+          {billParsed && !isParsing && (
+            <div className="mt-2 mb-4">
+              <p className="text-sm text-gray-600">This bill has already been parsed. Delete the image to parse a new one.</p>
             </div>
           )}
 
