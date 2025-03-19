@@ -169,7 +169,7 @@ const BillSplitter = () => {
   }
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
+    <div className="p-4 max-w-7xl mx-auto">
       {!eventId ? (
         <EventCreation navigate={navigate} />
       ) : (

@@ -313,13 +313,27 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
 
       <div className="mt-4 space-y-2">
         {selectedItems.length > 0 && (
-          <div className="mb-2">
+          <div className="mb-2 flex gap-2">
             <button
               onClick={handleDeleteSelected}
               disabled={isSubmitting}
               className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
             >
               Delete Selected ({selectedItems.length})
+            </button>
+            <button
+              onClick={() => {
+                if (selectedItems.length === items.length) {
+                  // If all items are already selected, deselect all
+                  setSelectedItems([]);
+                } else {
+                  // Otherwise, select all items
+                  setSelectedItems(items.map(item => item._id));
+                }
+              }}
+              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+            >
+              {selectedItems.length === items.length ? "Deselect All" : "Select All"}
             </button>
           </div>
         )}
