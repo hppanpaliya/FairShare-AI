@@ -48,7 +48,7 @@ async function parseBillImage(imagePath) {
           content: [
             {
               type: "text",
-              text: "This is a restaurant bill. Extract all the menu items with their prices. For each item, provide: name, quantity (default to 1 if not specified), unit price, and total price. Format the response as a JSON array with objects having the fields: name, quantity, unitPrice, totalPrice. If an item has zero price then include the name in previous item's name (check and understand if the prices are total or per item) Only include food/drink items, not tax, tip, or totals. Do not include any explanations in your response, just the JSON.",
+              text: "This is a restaurant bill. Extract all the menu items with their prices. For each item, provide: name, quantity (default to 1 if not specified), unit price, and total price. Format the response as a JSON array with objects having the fields: name, quantity, unitPrice, totalPrice. If an item has zero price then include the name in previous item's name field so not adding zero doller item seprately. (check and understand if the prices are total or per item) Only include food/drink items, not tax, tip, or totals. Do not include any explanations in your response, just the JSON.",
             },
             {
               type: "image_url",
