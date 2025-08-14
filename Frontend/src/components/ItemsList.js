@@ -363,7 +363,9 @@ const ItemsList = ({ eventId, items, loading, onError }) => {
               </span>
               <span className="w-1/6 text-center cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
                 {item.quantity}
-                <span className="text-xs text-gray-500 ml-1">({getTotalClaimedQuantity(item).toFixed(2)} claimed)</span>
+                <span className={`text-xs text-gray-500 ml-1 ${item.quantity / getTotalClaimedQuantity(item).toFixed(2) === 1 ? "text-green-500" : "text-red-500"}`}>
+                  ({getTotalClaimedQuantity(item).toFixed(2)} claimed)
+                </span>
               </span>
               <span className="w-1/6 text-right cursor-pointer hover:text-blue-600" onClick={() => openEditModal(item)}>
                 ${item.unitPrice.toFixed(2)}

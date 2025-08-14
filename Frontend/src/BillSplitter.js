@@ -233,7 +233,7 @@ const BillSplitter = () => {
             </div>
             {/* Right Column: People and Claims */}
             <div className="space-y-6">
-              <PeopleList eventId={eventId} people={people} shares={shares} loading={loading} onError={handleError} />
+              <PeopleList eventId={eventId} people={people} shares={shares} totalBill={totalBill} loading={loading} onError={handleError} />
               {items.length > 0 && people.length > 0 && <ItemClaims items={items} people={people} loading={loading} onError={handleError} />}
             </div>
           </div>

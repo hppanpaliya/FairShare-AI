@@ -3,7 +3,7 @@ import { addPerson, deletePerson } from "../services/api";
 import ConfirmationModal from "./ConfirmationModal";
 import { useToast } from "../context/ToastProvider";
 
-const PeopleList = ({ eventId, people, shares, loading, onError }) => {
+const PeopleList = ({ eventId, people, shares, totalBill, loading, onError }) => {
   const [newPerson, setNewPerson] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
@@ -100,6 +100,19 @@ const PeopleList = ({ eventId, people, shares, loading, onError }) => {
             </div>
           ))
         )}
+      </div>
+
+      <div key="Total" className="flex justify-between items-center border-t border-black pb-2">
+        <span className="font-semibold">Total</span>
+        <div className="flex items-center">
+          <span className="font-semibold mr-4">
+            $
+            {Object.values(shares)
+              .reduce((acc, val) => acc + val, 0)
+              .toFixed(2) || "0.00"}{" "}
+            / ${totalBill.toFixed(2) || "0.00"}
+          </span>
+        </div>
       </div>
 
       {/* Confirmation Modal */}

@@ -228,10 +228,10 @@ const ItemClaims = ({ items, people, loading, onError }) => {
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-2">
                   <div className="text-sm text-gray-500">
-                    {formatQuantity(getTotalClaimedQuantity(item))} of {item.quantity} claimed
-                    {getTotalClaimedQuantity(item) > item.quantity && (
-                      <span className="text-red-500 ml-1">(Overclaimed by {formatQuantity(getTotalClaimedQuantity(item) - item.quantity)})</span>
-                    )}
+                    <span className={`${item.quantity / getTotalClaimedQuantity(item).toFixed(2) === 1 ? "text-green-500" : "text-red-500"}`}>
+                      {formatQuantity(getTotalClaimedQuantity(item))} of {item.quantity} claimed 
+                      {item.quantity / getTotalClaimedQuantity(item).toFixed(2) === 1 ? " ✅" : ""}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
