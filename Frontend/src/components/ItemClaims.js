@@ -229,7 +229,7 @@ const ItemClaims = ({ items, people, loading, onError }) => {
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-2">
                   <div className="text-sm text-gray-500">
                     <span className={`${item.quantity / getTotalClaimedQuantity(item).toFixed(2) === 1 ? "text-green-500" : "text-red-500"}`}>
-                      {formatQuantity(getTotalClaimedQuantity(item))} of {item.quantity} claimed 
+                      {formatQuantity(getTotalClaimedQuantity(item))} of {item.quantity} claimed
                       {item.quantity / getTotalClaimedQuantity(item).toFixed(2) === 1 ? " ✅" : ""}
                     </span>
                   </div>
