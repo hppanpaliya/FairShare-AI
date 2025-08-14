@@ -48,7 +48,7 @@ const TaxAndTip = ({
           <input
             type="text"
             inputMode="decimal"
-            value={tax}
+            value={tax || ""}
             onChange={(e) => setTax(e.target.value)}
             placeholder="0.00"
             className="w-full p-2 border rounded focus:outline-none"
@@ -83,7 +83,7 @@ const TaxAndTip = ({
           <input
             type="text"
             inputMode="decimal"
-            value={tip}
+            value={tip || ""}
             onChange={(e) => setTip(e.target.value)}
             placeholder="0.00"
             className="w-full p-2 border rounded focus:outline-none"
